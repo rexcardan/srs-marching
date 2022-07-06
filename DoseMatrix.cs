@@ -6,15 +6,15 @@ namespace srs_marching
 {
     using g3;
 
-    public class OrientedTrilinearGrid3f : DenseGrid3f, IImplicitFunction3d
+    public class DoseMatrix : DenseGrid3f, IImplicitFunction3d
     {
-        public OrientedTrilinearGrid3f() : base() { }
-        public OrientedTrilinearGrid3f(DenseGrid3f grid) : base(grid.ni, grid.nj, grid.nk, 0)
+        public DoseMatrix() : base() { }
+        public DoseMatrix(DenseGrid3f grid) : base(grid.ni, grid.nj, grid.nk, 0)
         {
             Array.Copy(grid.Buffer, this.Buffer, grid.Buffer.Length);
         }
 
-        public OrientedTrilinearGrid3f(int ni, int nj, int nk, float initialValue) : base(ni, nj, nk, initialValue)
+        public DoseMatrix(int ni, int nj, int nk, float initialValue) : base(ni, nj, nk, initialValue)
         {
         }
 
@@ -83,9 +83,9 @@ namespace srs_marching
         // so don't use double.MaxValue or square will overflow
         public double Outside = Math.Sqrt(Math.Sqrt(double.MaxValue));
 
-        public new OrientedTrilinearGrid3f EmptyClone()
+        public new DoseMatrix EmptyClone()
         {
-            var clone = new OrientedTrilinearGrid3f(ni, nj, nk, 0)
+            var clone = new DoseMatrix(ni, nj, nk, 0)
             {
                 Orientation = new Frame3f(Orientation),
                 CellSize = new Vector3f(CellSize)
@@ -93,26 +93,26 @@ namespace srs_marching
             return clone;
         }
 
-        public OrientedTrilinearGrid3f Get3DSlice(int slice_i, int dimension)
+        public DoseMatrix Get3DSlice(int slice_i, int dimension)
         {
-            OrientedTrilinearGrid3f slice;
+            DoseMatrix slice;
             if (dimension == 0)
             {
-                slice = new OrientedTrilinearGrid3f(nj, nk, 1, 0);
+                slice = new DoseMatrix(nj, nk, 1, 0);
                 for (int k = 0; k < nk; ++k)
                     for (int j = 0; j < nj; ++j)
                         slice[j, k, 0] = Buffer[slice_i + ni * (j + nj * k)];
             }
             else if (dimension == 1)
             {
-                slice = new OrientedTrilinearGrid3f(ni, nk, 1, 0);
+                slice = new DoseMatrix(ni, nk, 1, 0);
                 for (int k = 0; k < nk; ++k)
                     for (int i = 0; i < ni; ++i)
                         slice[i, k, 0] = Buffer[i + ni * (slice_i + nj * k)];
             }
             else
             {
-                slice = new OrientedTrilinearGrid3f(ni, nj, 1, 0);
+                slice = new DoseMatrix(ni, nj, 1, 0);
                 for (int j = 0; j < nj; ++j)
                     for (int i = 0; i < ni; ++i)
                         slice[i, j, 0] = Buffer[i + ni * (j + nj * slice_i)];
@@ -130,7 +130,7 @@ namespace srs_marching
             return MarchingCubesOp.Calculate(this, isoLevel, bounds);
         }
 
-        public double FindLocalIsoVolume(Vector3f localCenter, float isoLevel, bool doSmallVolumeCorrection = true)
+        public double FindLocalIsoVolume(Vector3f localCenter, float isoLevel)
         {
             var copy = EmptyClone();
             Array.Copy(Buffer, copy.Buffer, Buffer.Length);
@@ -142,12 +142,11 @@ namespace srs_marching
             localDose.VoxelWiseApply(v => -v * 100 / isoLevel + 100); //Invert
             var mesh = localDose.MarchingCubes(0, localBounds);
             var triangleCount = mesh.TriangleCount;
-            //Correction factor
-            var correction = doSmallVolumeCorrection ? 1 + (11.62891 * Math.Pow(triangleCount, -0.5878701)) : 1;
-            return mesh.Volume() * correction;
+
+            return mesh.Volume();
         }
 
-        public (OrientedTrilinearGrid3f Grid, AxisAlignedBox3f Bounds) PaddedFloodSearch(Vector3f start, Func<float, bool> searchCritiera, int numPad = 1)
+        public (DoseMatrix Grid, AxisAlignedBox3f Bounds) PaddedFloodSearch(Vector3f start, Func<float, bool> searchCritiera, int numPad = 1)
         {
             Vector3f gridPt = new Vector3f(
                 ((start.x - Orientation.Origin.x) / CellSize.x),

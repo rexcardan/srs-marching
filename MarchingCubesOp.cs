@@ -80,7 +80,7 @@ namespace srs_marching
         // Not sure what you would do with this, but it is exposed anyway.
         public Dictionary<Vector3d, int> VertexHash;
 
-        public static DMesh3 Calculate(OrientedTrilinearGrid3f mat, float isodoseLevel, MarchResolution resolution = MarchResolution.HIGH)
+        public static DMesh3 Calculate(DoseMatrix mat, float isodoseLevel, MarchResolution resolution = MarchResolution.HIGH)
         {
             MarchingCubesOp c = new MarchingCubesOp();
             c.Implicit = mat;
@@ -92,7 +92,7 @@ namespace srs_marching
             return c.Mesh;
         }
 
-        public static DMesh3 Calculate(OrientedTrilinearGrid3f mat, float isodoseLevel, AxisAlignedBox3d bounds, MarchResolution resolution = MarchResolution.HIGH)
+        public static DMesh3 Calculate(DoseMatrix mat, float isodoseLevel, AxisAlignedBox3d bounds, MarchResolution resolution = MarchResolution.HIGH)
         {
             MarchingCubesOp c = new MarchingCubesOp();
             c.Implicit = mat;
